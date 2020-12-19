@@ -28,7 +28,7 @@
 /* definitions */
 
 #define DESTZONE "TZ=Europe/Berlin"
-#define temp_offset (5.0f)
+float temp_offset = 5.0f;
 #define sample_rate_mode (BSEC_SAMPLE_RATE_LP)
 
 int g_i2cFid; // I2C Linux device handle
@@ -320,8 +320,12 @@ uint32_t config_load(uint8_t *config_buffer, uint32_t n_buffer)
  *
  * return      result of the processing
  */
-int main()
+int main(int argc, char* argv[])
 {
+  if( argc == 2 )
+  {
+      temp_offset=atof(argv[1]);
+  }
   putenv(DESTZONE); // Switch to destination time zone
 
   i2cOpen();
