@@ -199,18 +199,13 @@ void output_ready(int64_t timestamp, float iaq, uint8_t iaq_accuracy,
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
 
-  printf("%d-%02d-%02d %02d:%02d:%02d,", tm.tm_year + 1900,tm.tm_mon + 1,
-         tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec); /* localtime */
-  printf("[IAQ (%d)]: %.2f", iaq_accuracy, iaq);
-  printf(",[T degC]: %.2f,[H %%rH]: %.2f,[P hPa]: %.2f", temperature,
-         humidity,pressure / 100);
-  printf(",[G Ohms]: %.0f", gas);
-  printf(",[S]: %d", bsec_status);
-  //printf(",[static IAQ]: %.2f", static_iaq);
-  printf(",[eCO2 ppm]: %.15f", co2_equivalent);
-  printf(",[bVOCe ppm]: %.25f", breath_voc_equivalent);
-  //printf(",%" PRId64, timestamp);
-  //printf(",%" PRId64, timestamp_ms);
+  printf("{\"iaq_accuracy\": \"%d\",\"iaq\":\"%.2f\"", iaq_accuracy, iaq);
+  printf(",\"temperature\": \"%.2f\",\"humidity\": \"%.2f\",\"pressure\": \"%.2f\"", temperature, humidity,pressure / 100);
+  printf(",\"eCO2\": \"%.2f\"", co2_equivalent);
+  printf(",\"bVOCe\": \"%.2f\"", breath_voc_equivalent);
+  printf(",\"gas\": \"%.0f\"", gas);
+  printf(",\"state\": \"I: %.0f T: %.2f\"", iaq, temperature);
+  printf(",\"status\": \"%d\"}", bsec_status);
   printf("\r\n");
   fflush(stdout);
 }
@@ -323,8 +318,7 @@ uint32_t config_load(uint8_t *config_buffer, uint32_t n_buffer)
  */
 int main(int argc, char* argv[])
 {
-  if( argc == 2 )
-  {
+  if( argc == 2 ) {
       temp_offset=atof(argv[1]);
   }
   putenv(DESTZONE); // Switch to destination time zone
@@ -338,11 +332,11 @@ int main(int argc, char* argv[])
                       _sleep, state_load, config_load);
   if (ret.bme680_status) {
     /* Could not intialize BME680 */
-    printf("BSEC Error :%d", ret.bme680_status);
+    printf("BME680 Error :%d", ret.bme680_status);
     return (int)ret.bme680_status;
   } else if (ret.bsec_status) {
     /* Could not intialize BSEC library */
-    printf("BME680 Error :%d", ret.bme680_status);
+    printf("BSEC Error :%d", ret.bme680_status);
     return (int)ret.bsec_status;
   }
 
@@ -357,4 +351,3 @@ int main(int argc, char* argv[])
   i2cClose();
   return 0;
 }
-
