@@ -338,9 +338,11 @@ int main(int argc, char* argv[])
                       _sleep, state_load, config_load);
   if (ret.bme680_status) {
     /* Could not intialize BME680 */
+    printf("BSEC Error :%d", ret.bme680_status);
     return (int)ret.bme680_status;
   } else if (ret.bsec_status) {
     /* Could not intialize BSEC library */
+    printf("BME680 Error :%d", ret.bme680_status);
     return (int)ret.bsec_status;
   }
 
