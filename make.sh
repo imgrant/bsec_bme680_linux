@@ -33,7 +33,7 @@ fi
 EXAMPLES_DIR="${BSEC_DIR}/examples/bsec_iot_example"
 
 echo 'Compiling...'
-cc -Wall -Wno-unused-but-set-variable -Wno-unused-variable -static \
+arm-linux-gnueabihf-gcc -Wall -Wno-unused-but-set-variable -Wno-unused-variable -static \
   -std=c99 -pedantic \
   -iquote"${BSEC_DIR}"/algo/${ARCH} \
   -iquote"${EXAMPLES_DIR}" \
