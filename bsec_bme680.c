@@ -32,8 +32,8 @@ float temp_offset = 0.0f;
 #define sample_rate_mode (BSEC_SAMPLE_RATE_LP)
 
 int g_i2cFid; // I2C Linux device handle
-//int i2c_address = BME680_I2C_ADDR_PRIMARY;
-int i2c_address = BME680_I2C_ADDR_SECONDARY;
+int i2c_address_primary = BME680_I2C_ADDR_PRIMARY;
+int i2c_address_secondary = BME680_I2C_ADDR_SECONDARY;
 char *filename_state = "bsec_iaq.state";
 char *filename_config = "bsec_iaq.config";
 
@@ -314,17 +314,32 @@ uint32_t config_load(uint8_t *config_buffer, uint32_t n_buffer)
  * Main function which configures BSEC library and then reads and processes
  * the data from sensor based on timer ticks
  *
+ * param[in]   argv[1] Whether to use primary or secondary I2C address (default is primary)
+ * param[in]   argv[2] temperature offset (default is 0.0)
  * return      result of the processing
  */
 int main(int argc, char* argv[])
 {
-  if( argc == 2 ) {
-      temp_offset=atof(argv[1]);
-  }
   putenv(DESTZONE); // Switch to destination time zone
 
   i2cOpen();
-  i2cSetAddress(i2c_address);
+  int cmpp = strcmp( argv[1], "primary" );
+  int cmps = strcmp( argv[1], "secondary" );
+  if ( argc > 1 ) {
+    if (cmpp == 0) {
+      i2cSetAddress(i2c_address_primary);
+      if ( argc == 3 ) {
+        temp_offset=atof(argv[2]);
+      }
+    } else if (cmps == 0) {
+      i2cSetAddress(i2c_address_secondary);
+      if ( argc == 3 ) {
+        temp_offset=atof(argv[2]);
+      }
+    } else {
+      temp_offset=atof(argv[1]);
+    }
+  }
 
   return_values_init ret;
 
