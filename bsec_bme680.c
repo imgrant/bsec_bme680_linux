@@ -323,9 +323,9 @@ int main(int argc, char* argv[])
   putenv(DESTZONE); // Switch to destination time zone
 
   i2cOpen();
-  int cmpp = strcmp( argv[1], "primary" );
-  int cmps = strcmp( argv[1], "secondary" );
   if ( argc > 1 ) {
+    int cmpp = strcmp( argv[1], "primary" );
+    int cmps = strcmp( argv[1], "secondary" );
     if (cmpp == 0) {
       i2cSetAddress(i2c_address_primary);
       if ( argc == 3 ) {
@@ -339,6 +339,8 @@ int main(int argc, char* argv[])
     } else {
       temp_offset=atof(argv[1]);
     }
+  } else {
+    i2cSetAddress(i2c_address_primary);
   }
 
   return_values_init ret;
