@@ -40,7 +40,7 @@ fi
 EXAMPLES_DIR="${BSEC_DIR}/examples/bsec_iot_example"
 
 echo 'Compiling...'
-arm-linux-gnueabihf-gcc -Wall -Wno-unused-but-set-variable -Wno-unused-variable -static \
+/opt/cross-pi-gcc/bin/arm-linux-gnueabihf-gcc -Wall -Wno-unused-but-set-variable -Wno-unused-variable -static \
   -std=c99 -pedantic \
   -iquote"${BSEC_DIR}"/API \
   -iquote"${BSEC_DIR}"/algo/${ARCH} \
@@ -49,7 +49,7 @@ arm-linux-gnueabihf-gcc -Wall -Wno-unused-but-set-variable -Wno-unused-variable 
   "${EXAMPLES_DIR}"/bsec_integration.c \
   ./bsec_bme680.c \
   -L"${BSEC_DIR}"/algo/"${ARCH}" -lalgobsec \
-  -lm -lrt \
+  -lm -lrt -s \
   -o bsec_bme680
 echo "Compiled BSEC version $BSEC_VERSION to ./bsec_bme680"
 echo $BSEC_VERSION >./version
