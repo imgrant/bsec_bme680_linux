@@ -46,7 +46,7 @@ echo 'Compiling...'
   -iquote"${BSEC_DIR}"/algo/${ARCH} \
   -iquote"${EXAMPLES_DIR}" \
   "${EXAMPLES_DIR}"/bme680.c \
-  "${EXAMPLES_DIR}"/bsec_integration.c \
+  ./bsec_integration.c \
   ./bsec_bme680.c \
   -L"${BSEC_DIR}"/algo/"${ARCH}" -lalgobsec \
   -lm -lrt -s \

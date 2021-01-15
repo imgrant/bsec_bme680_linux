@@ -165,28 +165,43 @@ int64_t get_timestamp_us()
 /*
  * Handling of the ready outputs
  *
- * param[in]       timestamp       time in microseconds
- * param[in]       iaq             IAQ signal
- * param[in]       iaq_accuracy    accuracy of IAQ signal
- * param[in]       temperature     temperature signal
- * param[in]       humidity        humidity signal
- * param[in]       pressure        pressure signal
- * param[in]       raw_temperature raw temperature signal
- * param[in]       raw_humidity    raw humidity signal
- * param[in]       gas             raw gas sensor signal
- * param[in]       bsec_status     value returned by the bsec_do_steps() call
- * param[in]       static_iaq      unscaled indoor-air-quality estimate
- * param[in]       co2_equivalent  CO2 equivalent estimate [ppm]
+ * n.b. IAQ accuracy measure is an integer, 0-3, representing the following states:
+ *   0  = Stabilization / run-in ongoing                                                                                                                                |
+ *   1  = Low accuracy,to reach high accuracy(3),please expose sensor once to good air (e.g. outdoor air) and bad air (e.g. box with exhaled breath) for auto-trimming  |
+ *   2  = Medium accuracy: auto-trimming ongoing                                                                                                                        |
+ *   3  = High accuracy   
+ * 
+ * param[in]       timestamp              time in microseconds
+ * param[in]       iaq                    IAQ signal [0-500]
+ *                                          recommended for mobile environments
+ * param[in]       iaq_accuracy           accuracy of IAQ signal, see above [0-3]
+ * param[in]       temperature            (compensated) temperature signal
+ * param[in]       humidity               (compensated) humidity signal
+ * param[in]       pressure               (compensated) pressure signal
+ * param[in]       raw_temperature        raw temperature signal
+ * param[in]       raw_humidity           raw humidity signal
+ * param[in]       gas                    raw gas sensor signal [Ohm]
+ *                                          gas sensor resistance, compensated by temperature and humidity
+ * param[in]       bsec_status            value returned by the bsec_do_steps() call
+ * param[in]       static_iaq             unscaled indoor-air-quality estimate [0-500]
+ *                                          recommended for stationary devices, excludes auto-trimming algorithm
+ * param[in]       static_iaq_accuracy    accuracy of static IAQ signal, see above [0-3]
+ * param[in]       co2_equivalent         CO2 equivalent estimate [ppm]
  * param[in]       breath_voc_equivalent  breath VOC concentration estimate [ppm]
- *
+ * param[in]       gas_percentage         alternative indicator for air pollution [%]
+ *                                          rates the raw gas sensor resistance value based on the
+ *                                          individual sensor history:
+ *                                            0% = "lowest air pollution ever measured"
+ *                                            100% = "highest air pollution ever measured"
+ * 
  * return          none
  */
 void output_ready(int64_t timestamp, float iaq, uint8_t iaq_accuracy,
                   float temperature, float humidity, float pressure,
                   float raw_temperature, float raw_humidity, float gas,
                   bsec_library_return_t bsec_status,
-                  float static_iaq, float co2_equivalent,
-                  float breath_voc_equivalent)
+                  float static_iaq, uint8_t static_iaq_accuracy, float co2_equivalent,
+                  float breath_voc_equivalent, float gas_percentage)
 {
   //int64_t timestamp_s = timestamp / 1000000000;
   ////int64_t timestamp_ms = timestamp / 1000;
@@ -199,13 +214,13 @@ void output_ready(int64_t timestamp, float iaq, uint8_t iaq_accuracy,
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
 
-  printf("{\"iaq_accuracy\": \"%d\",\"iaq\":\"%.2f\"", iaq_accuracy, iaq);
-  printf(",\"temperature\": \"%.2f\",\"humidity\": \"%.2f\",\"pressure\": \"%.2f\"", temperature, humidity,pressure / 100);
-  printf(",\"eCO2\": \"%.2f\"", co2_equivalent);
-  printf(",\"bVOCe\": \"%.2f\"", breath_voc_equivalent);
-  printf(",\"gas\": \"%.0f\"", gas);
-  printf(",\"state\": \"I: %.0f T: %.2f\"", iaq, temperature);
-  printf(",\"status\": \"%d\"}", bsec_status);
+  printf("{ \"iaq\": \"%.2f\", \"iaq_accuracy\": \"%d\"", iaq, iaq_accuracy);
+  printf(", \"s_iaq\": \"%.2f\", \"s_iaq_accuracy\": \"%d\"", static_iaq, static_iaq_accuracy);
+  printf(", \"temperature\": \"%.2f\", \"humidity\": \"%.2f\", \"pressure\": \"%.2f\"", temperature, humidity,pressure / 100);
+  printf(", \"co2_equivalents\": \"%.2f\"", co2_equivalent);
+  printf(", \"breath_voc_equivalents\": \"%.2f\"", breath_voc_equivalent);
+  printf(", \"gas_resistance\": \"%.0f\", \"gas_percentage\": \"%.0f\"", gas, gas_percentage);
+  printf(", \"status\": \"%d\" }", bsec_status);
   printf("\r\n");
   fflush(stdout);
 }
