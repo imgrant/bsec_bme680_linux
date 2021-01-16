@@ -220,8 +220,7 @@ void output_ready(int64_t timestamp, float iaq, uint8_t iaq_accuracy,
   printf(", \"co2_equivalents\": \"%.2f\"", co2_equivalent);
   printf(", \"breath_voc_equivalents\": \"%.2f\"", breath_voc_equivalent);
   printf(", \"gas_resistance\": \"%.0f\", \"gas_percentage\": \"%.0f\"", gas, gas_percentage);
-  printf(", \"status\": \"%d\" }", bsec_status);
-  printf("\r\n");
+  printf(", \"status\": \"%d\" }\n", bsec_status);
   fflush(stdout);
 }
 
