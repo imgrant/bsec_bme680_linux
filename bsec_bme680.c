@@ -38,9 +38,6 @@ const char *argp_program_bug_address =
 static char doc[] =
   "bsec_bme680 - Read data from a Bosch BME680 environmental sensor via the BSEC library.";
 
-/* A description of the arguments we accept. */
-static char args_doc[] = "ARG1 ARG2";
-
 /* The options we understand. */
 static struct argp_option options[] = {
   {"address", 'a', "NUM",   0,  "I2C address of device (default: 0x76)"             },
@@ -89,7 +86,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 }
 
 /* Argument parser. */
-static struct argp argp = { options, parse_opt, args_doc, doc };
+static struct argp argp = { options, parse_opt, 0, doc };
 
 #define DESTZONE "TZ=Europe/London"
 #define sample_rate_mode (BSEC_SAMPLE_RATE_LP)
