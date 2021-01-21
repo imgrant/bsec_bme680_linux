@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <argp.h>
 #include <time.h>
 #include <fcntl.h>
 #include <string.h>
@@ -27,15 +28,76 @@
 
 /* definitions */
 
-#define DESTZONE "TZ=Europe/Berlin"
-float temp_offset = 0.0f;
+const char *argp_program_version =
+  "1.4.8.0";
+
+const char *argp_program_bug_address =
+  "https://github.com/imgrant/bsec_bme680_linux/issues";
+
+/* Program documentation. */
+static char doc[] =
+  "bsec_bme680 - Read data from a Bosch BME680 environmental sensor via the BSEC library.";
+
+/* A description of the arguments we accept. */
+static char args_doc[] = "ARG1 ARG2";
+
+/* The options we understand. */
+static struct argp_option options[] = {
+  {"address", 'a', "NUM",   0,  "I2C address of device (default: 0x76)"             },
+  {"config",  'c', "FILE",  0,  "Path to config file (default: 'bsec_iaq.config')"  },
+  {"state",   's', "FILE",  0,  "Path to state file (default: 'bsec_iaq.state')"    },
+  {"offset",  'o', "NUM",   0,  "Temperature offset to apply (default: 0.0°C)"      },
+  { 0 }
+};
+
+/* Used by main to communicate with parse_opt. */
+struct arguments
+{
+  int i2c_address;
+  char *config_file;
+  char *state_file;
+  float temp_offset;
+};
+
+/* Parse a single option. */
+static error_t
+parse_opt (int key, char *arg, struct argp_state *state)
+{
+  /* Get the input argument from argp_parse, which we
+     know is a pointer to our arguments structure. */
+  struct arguments *arguments = state->input;
+
+  switch (key)
+    {
+    case 'a':
+      arguments->i2c_address = strtol(arg, NULL, 16);
+      break;
+    case 'c':
+      arguments->config_file = arg;
+      break;
+    case 's':
+      arguments->state_file = arg;
+      break;
+    case 'o':
+      arguments->temp_offset = atof(arg);
+      break;
+
+    default:
+      return ARGP_ERR_UNKNOWN;
+    }
+  return 0;
+}
+
+/* Argument parser. */
+static struct argp argp = { options, parse_opt, args_doc, doc };
+
+#define DESTZONE "TZ=Europe/London"
 #define sample_rate_mode (BSEC_SAMPLE_RATE_LP)
 
 int g_i2cFid; // I2C Linux device handle
-int i2c_address_primary = BME680_I2C_ADDR_PRIMARY;
-int i2c_address_secondary = BME680_I2C_ADDR_SECONDARY;
-char *filename_state = "bsec_iaq.state";
-char *filename_config = "bsec_iaq.config";
+/* Global variables holding filenames */
+char *filename_state;
+char *filename_config;
 
 /* functions */
 
@@ -328,38 +390,31 @@ uint32_t config_load(uint8_t *config_buffer, uint32_t n_buffer)
  * Main function which configures BSEC library and then reads and processes
  * the data from sensor based on timer ticks
  *
- * param[in]   argv[1] Whether to use primary or secondary I2C address (default is primary)
- * param[in]   argv[2] temperature offset (default is 0.0)
+ * param[in]   argp processes command line options (see atop)
  * return      result of the processing
  */
 int main(int argc, char* argv[])
 {
+  struct arguments arguments;
+
   putenv(DESTZONE); // Switch to destination time zone
 
+  /* Default parameters */
+  arguments.i2c_address = BME680_I2C_ADDR_PRIMARY;
+  arguments.config_file = "bsec_iaq.config";
+  arguments.state_file  = "bsec_iaq.state";
+  arguments.temp_offset = 0.0f;
+
+  argp_parse (&argp, argc, argv, 0, 0, &arguments);
+  /* Set global variables for filenames */
+  filename_config = arguments.config_file;
+  filename_state = arguments.state_file;
   i2cOpen();
-  if ( argc > 1 ) {
-    int cmpp = strcmp( argv[1], "primary" );
-    int cmps = strcmp( argv[1], "secondary" );
-    if (cmpp == 0) {
-      i2cSetAddress(i2c_address_primary);
-      if ( argc == 3 ) {
-        temp_offset=atof(argv[2]);
-      }
-    } else if (cmps == 0) {
-      i2cSetAddress(i2c_address_secondary);
-      if ( argc == 3 ) {
-        temp_offset=atof(argv[2]);
-      }
-    } else {
-      temp_offset=atof(argv[1]);
-    }
-  } else {
-    i2cSetAddress(i2c_address_primary);
-  }
+  i2cSetAddress(arguments.i2c_address);
 
   return_values_init ret;
 
-  ret = bsec_iot_init(sample_rate_mode, temp_offset, bus_write, bus_read,
+  ret = bsec_iot_init(sample_rate_mode, arguments.temp_offset, bus_write, bus_read,
                       _sleep, state_load, config_load);
   if (ret.bme680_status) {
     /* Could not intialize BME680 */
