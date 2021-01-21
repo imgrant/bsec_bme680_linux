@@ -214,13 +214,13 @@ void output_ready(int64_t timestamp, float iaq, uint8_t iaq_accuracy,
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
 
-  printf("{ \"iaq\": \"%.2f\", \"iaq_accuracy\": \"%d\"", iaq, iaq_accuracy);
-  printf(", \"s_iaq\": \"%.2f\", \"s_iaq_accuracy\": \"%d\"", static_iaq, static_iaq_accuracy);
-  printf(", \"temperature\": \"%.2f\", \"humidity\": \"%.2f\", \"pressure\": \"%.2f\"", temperature, humidity,pressure / 100);
-  printf(", \"co2_equivalents\": \"%.2f\"", co2_equivalent);
-  printf(", \"breath_voc_equivalents\": \"%.2f\"", breath_voc_equivalent);
-  printf(", \"gas_resistance\": \"%.0f\", \"gas_percentage\": \"%.0f\"", gas, gas_percentage);
-  printf(", \"status\": \"%d\" }\n", bsec_status);
+  printf("{ \"iaq\": %.2f, \"iaq_accuracy\": %d", iaq, iaq_accuracy);
+  printf(", \"s_iaq\": %.2f, \"s_iaq_accuracy\": %d", static_iaq, static_iaq_accuracy);
+  printf(", \"temperature\": %.2f, \"humidity\": %.2f, \"pressure\": %.2f", temperature, humidity,pressure / 100);
+  printf(", \"co2_equivalents\": %.2f", co2_equivalent);
+  printf(", \"breath_voc_equivalents\": %.2f", breath_voc_equivalent);
+  printf(", \"gas_resistance\": %.0f, \"gas_percentage\": %.0f", gas, gas_percentage);
+  printf(", \"status\": %d }\n", bsec_status);
   fflush(stdout);
 }
 
